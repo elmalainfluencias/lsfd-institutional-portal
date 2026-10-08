@@ -11,7 +11,7 @@ export async function POST(request: Request) {
     const rango = clean(body.rango);
     const password = typeof body.password === 'string' ? body.password : '';
 
-    if (!nombreIc || nombreIc.split(/\s+/).length < 2) return NextResponse.json({ error: 'Ingresá Nombre y Apellido del personaje.' }, { status: 400 });
+    if (!nombreIc || nombreIc.split(/\s+/).length < 2) return NextResponse.json({ error: 'Ingresá nombre y apellido.' }, { status: 400 });
     if (!rango) return NextResponse.json({ error: 'Ingresá tu rango.' }, { status: 400 });
     if (password.length < 8) return NextResponse.json({ error: 'La contraseña debe tener al menos 8 caracteres.' }, { status: 400 });
 
@@ -19,7 +19,7 @@ export async function POST(request: Request) {
       headers: serviceHeaders(), cache: 'no-store',
     });
     if (existing.ok && (await existing.json()).length) {
-      return NextResponse.json({ error: 'Ya existe una solicitud o cuenta con ese Nombre IC.' }, { status: 409 });
+      return NextResponse.json({ error: 'Ya existe una solicitud o cuenta con ese nombre.' }, { status: 409 });
     }
 
     const createAuth = await fetch(`${SUPABASE_URL}/auth/v1/admin/users`, {

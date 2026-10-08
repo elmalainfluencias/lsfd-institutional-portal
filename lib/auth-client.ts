@@ -54,7 +54,7 @@ export async function login(nombreIc: string, password: string) {
     body: JSON.stringify({ email: authEmail(nombreIc), password }),
   });
   const data = await response.json();
-  if (!response.ok) throw new Error(data.error_description || data.msg || 'Nombre IC o contraseña incorrectos.');
+  if (!response.ok) throw new Error(data.error_description || data.msg || 'Nombre o contraseña incorrectos.');
 
   const profileResponse = await fetch(
     `${SUPABASE_URL}/rest/v1/profiles?select=id,nombre_ic,rango,estado,rol,created_at&id=eq.${encodeURIComponent(data.user.id)}&limit=1`,
