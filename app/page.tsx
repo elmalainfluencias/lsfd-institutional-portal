@@ -1,5 +1,5 @@
 'use client';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { allArticles, sections } from '../lib/code';
 
 const discipline = [
@@ -13,6 +13,23 @@ export default function Home() {
   const [view, setView] = useState<'home' | 'code' | 'discipline' | 'procedure' | 'neutrality'>('home');
   const [query, setQuery] = useState('');
   const [section, setSection] = useState('all');
+  const [darkMode, setDarkMode] = useState(false);
+  const [themeReady, setThemeReady] = useState(false);
+
+  useEffect(() => {
+    const saved = window.localStorage.getItem('lsfd-theme');
+    const initialDark = saved === 'dark';
+    setDarkMode(initialDark);
+    document.documentElement.dataset.theme = initialDark ? 'dark' : 'light';
+    setThemeReady(true);
+  }, []);
+
+  useEffect(() => {
+    if (!themeReady) return;
+    document.documentElement.dataset.theme = darkMode ? 'dark' : 'light';
+    window.localStorage.setItem('lsfd-theme', darkMode ? 'dark' : 'light');
+  }, [darkMode, themeReady]);
+
   const scrollTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
   const nav = (v: typeof view) => { setView(v); scrollTop(); };
   const openCode = (id = 'all') => { setSection(id); setQuery(''); setView('code'); scrollTop(); };
@@ -34,6 +51,10 @@ export default function Home() {
         <img src="/psd-logo.png" alt="Professional Standards Division" />
         <span>PSD</span>
       </div>
+      <button className="themeToggle" onClick={() => setDarkMode(v => !v)} aria-label={darkMode ? 'Activar modo claro' : 'Activar modo oscuro'} title={darkMode ? 'Modo claro' : 'Modo oscuro'}>
+        <span aria-hidden="true">{darkMode ? '☼' : '☾'}</span>
+        <b>{darkMode ? 'CLARO' : 'OSCURO'}</b>
+      </button>
       <div className="status"><i /> VIGENTE</div>
     </header>
 
