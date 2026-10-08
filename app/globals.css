@@ -117,6 +117,7 @@ html[data-theme="dark"] .legalDocument { box-shadow:0 15px 50px rgba(0,0,0,.25);
 .related { border-color:var(--theme-border); }
 .related>b { color:var(--lsfd-red); }
 .proposal { border-top-color:var(--lsfd-red); }
+.proposal p { color:var(--theme-text); }
 .proposal p:first-of-type { color:var(--theme-text); }
 
 footer { background:var(--theme-surface); border-color:var(--theme-border); color:var(--theme-muted); }
