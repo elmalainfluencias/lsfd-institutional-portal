@@ -1,5 +1,4 @@
 import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL, authEmail, requireSupabaseConfig } from './supabase-config';
-import { LSFD_RANKS } from './ranks';
 
 const SESSION_KEY = 'lsfd-auth-session';
 

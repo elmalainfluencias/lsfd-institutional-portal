@@ -1,7 +1,8 @@
 'use client';
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { allArticles, sections } from '../lib/code';
-import { LSFD_RANKS, adminRequest, clearSession, createComplaint, getMyComplaints, getSession, login, requestAccount, type LsfdProfile } from '../lib/auth-client';
+import { LSFD_RANKS } from '../lib/ranks';
+import { adminRequest, clearSession, createComplaint, getMyComplaints, getSession, login, requestAccount, type LsfdProfile } from '../lib/auth-client';
 
 const discipline = [
   { type: 'Leve', color: 'slate', desc: 'Conductas que alteren el orden, la disciplina o el funcionamiento sin comprometer gravemente la seguridad o el servicio.', arts: '3' },
