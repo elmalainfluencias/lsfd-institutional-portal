@@ -143,7 +143,7 @@ export async function getMyComplaints() {
   return response.json();
 }
 
-export async function adminRequest(path: string, method: 'GET' | 'POST', body?: unknown) {
+export async function adminRequest(path: string, method: 'GET' | 'POST' | 'PATCH', body?: unknown) {
   const session = getSession();
   if (!session || !['admin', 'psd'].includes(session.profile.rol)) throw new Error('No autorizado.');
   const response = await fetch(path, {

@@ -5,6 +5,52 @@ import { getAuthenticatedUser, getProfile, serviceHeaders } from '../../../../li
 const MAX_FILE_SIZE = 8 * 1024 * 1024;
 const ALLOWED = new Set(['image/jpeg', 'image/png', 'image/webp']);
 
+async function canViewComplaint(complaintId: string, userId: string) {
+  const profile = await getProfile(userId);
+  if (!profile || profile.estado !== 'aprobado') return false;
+  if (profile.rol === 'admin' || profile.rol === 'psd') return true;
+  const check = await fetch(`${SUPABASE_URL}/rest/v1/quejas?select=id&id=eq.${encodeURIComponent(complaintId)}&usuario_id=eq.${encodeURIComponent(userId)}&limit=1`, {
+    headers: serviceHeaders(), cache: 'no-store'
+  });
+  const rows = await check.json();
+  return check.ok && rows.length > 0;
+}
+
+export async function GET(request: Request) {
+  try {
+    const token = request.headers.get('authorization')?.replace(/^Bearer\s+/i, '') || '';
+    const user = await getAuthenticatedUser(token);
+    if (!user?.id) return NextResponse.json({ error: 'Sesión no válida.' }, { status: 401 });
+    const complaintId = new URL(request.url).searchParams.get('complaintId')?.trim() || '';
+    if (!complaintId) return NextResponse.json({ error: 'Falta la queja.' }, { status: 400 });
+    if (!(await canViewComplaint(complaintId, user.id))) return NextResponse.json({ error: 'No autorizado.' }, { status: 403 });
+
+    const response = await fetch(`${SUPABASE_URL}/rest/v1/queja_evidencias?select=id,tipo,nombre_archivo,storage_path,url,created_at&queja_id=eq.${encodeURIComponent(complaintId)}&order=created_at.asc`, {
+      headers: serviceHeaders(), cache: 'no-store'
+    });
+    const rows = await response.json();
+    if (!response.ok) return NextResponse.json({ error: 'No se pudo cargar la evidencia.' }, { status: 500 });
+
+    const items = [];
+    for (const row of rows) {
+      if (row.tipo === 'imagen' && row.storage_path) {
+        const signed = await fetch(`${SUPABASE_URL}/storage/v1/object/sign/quejas-evidencia/${row.storage_path}`, {
+          method: 'POST', headers: serviceHeaders(), body: JSON.stringify({ expiresIn: 3600 }), cache: 'no-store'
+        });
+        const signedData = await signed.json();
+        if (signed.ok && signedData?.signedURL) {
+          items.push({ ...row, url: `${SUPABASE_URL}/storage/v1${signedData.signedURL}` });
+        }
+      } else if (row.tipo === 'enlace' && row.url) {
+        items.push(row);
+      }
+    }
+    return NextResponse.json({ items });
+  } catch (error) {
+    return NextResponse.json({ error: error instanceof Error ? error.message : 'Error inesperado.' }, { status: 500 });
+  }
+}
+
 export async function POST(request: Request) {
   try {
     const token = request.headers.get('authorization')?.replace(/^Bearer\s+/i, '') || '';

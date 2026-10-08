@@ -159,6 +159,39 @@ function DashboardView({ session, onLogout }: { session: any; onLogout: () => vo
 
 function ComplaintForm({ onDone }: { onDone: (msg:string)=>void }) { const [form,setForm]=useState({persona_denunciada:'',motivo:'',descripcion:'',fecha_hecho:''}); const [links,setLinks]=useState<string[]>(['']); const [files,setFiles]=useState<File[]>([]); const [busy,setBusy]=useState(false); const [error,setError]=useState(''); const submit=async(e:FormEvent)=>{e.preventDefault();setBusy(true);setError('');try{const result=await createComplaint({...form,links:links.map(x=>x.trim()).filter(Boolean)}); for(const file of files){const session=getSession(); if(!session) throw new Error('Tu sesión expiró. Vuelve a iniciar sesión.'); const fd=new FormData(); fd.append('queja_id',result.id); fd.append('file',file); const upload=await fetch('/api/complaints/evidence',{method:'POST',headers:{Authorization:`Bearer ${session.access_token}`},body:fd}); const data=await upload.json(); if(!upload.ok) throw new Error(data.error||'No se pudo subir una de las imágenes.');} onDone('La queja fue presentada correctamente y quedó registrada.');}catch(err){setError(err instanceof Error?err.message:'No se pudo presentar la queja.');}finally{setBusy(false);}}; const addLink=()=>setLinks([...links,'']); return <div className="panel formPanel"><div className="eyebrow">PSD · PRESENTACIÓN FORMAL</div><h2>Presentar una queja</h2><p>Completa los datos de forma clara y objetiva. Puedes adjuntar imágenes o enlaces como evidencia.</p><form onSubmit={submit}><label>Persona denunciada<input required value={form.persona_denunciada} onChange={e=>setForm({...form,persona_denunciada:e.target.value})} placeholder="Nombre Apellido" /></label><label>Motivo<input required value={form.motivo} onChange={e=>setForm({...form,motivo:e.target.value})} placeholder="Motivo de la queja" /></label><label>Fecha del hecho<input type="date" value={form.fecha_hecho} onChange={e=>setForm({...form,fecha_hecho:e.target.value})} /></label><label>Descripción de los hechos<textarea required value={form.descripcion} onChange={e=>setForm({...form,descripcion:e.target.value})} placeholder="Describe lo ocurrido de manera objetiva." rows={7} /></label><div className="evidenceBox"><div className="evidenceTitle">EVIDENCIA</div><p>Adjunta imágenes o agrega enlaces que respalden la presentación.</p><label>Imágenes<input type="file" accept="image/jpeg,image/png,image/webp" multiple onChange={e=>setFiles(Array.from(e.target.files||[]).slice(0,8))} /></label>{files.length>0&&<small>{files.length} imagen(es) seleccionada(s). Máximo 8 MB por imagen.</small>}<label>Enlaces de evidencia</label>{links.map((link,i)=><div className="linkRow" key={i}><input type="url" value={link} onChange={e=>setLinks(links.map((x,j)=>j===i?e.target.value:x))} placeholder="https://imgur.com/..." /></div>)}{links.length<10&&<button type="button" className="ghost" onClick={addLink}>+ Agregar enlace</button>}</div>{error&&<div className="formError">{error}</div>}<button className="primary" disabled={busy}>{busy?'Enviando…':'Presentar queja'}</button></form></div>; }
 
+
+function EvidenceBlock({ complaintId }: { complaintId: string }) {
+  const [items, setItems] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  useEffect(() => {
+    let active = true;
+    const load = async () => {
+      try {
+        const session = getSession();
+        if (!session) return;
+        const response = await fetch(`/api/complaints/evidence?complaintId=${encodeURIComponent(complaintId)}`, {
+          headers: { Authorization: `Bearer ${session.access_token}` },
+          cache: 'no-store',
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'No se pudo cargar la evidencia.');
+        if (active) setItems(data.items || []);
+      } catch (e) {
+        if (active) setError(e instanceof Error ? e.message : 'No se pudo cargar la evidencia.');
+      } finally {
+        if (active) setLoading(false);
+      }
+    };
+    load();
+    return () => { active = false; };
+  }, [complaintId]);
+  if (loading) return <div className="evidenceView"><b>Evidencia</b><span>Cargando…</span></div>;
+  if (error) return <div className="evidenceView"><b>Evidencia</b><span>{error}</span></div>;
+  if (!items.length) return null;
+  return <div className="evidenceView"><b>Evidencia</b><div className="evidenceItems">{items.map((item:any) => item.tipo === 'imagen' ? <a className="evidenceImage" href={item.url} target="_blank" rel="noreferrer" key={item.id}><img src={item.url} alt={item.nombre_archivo || 'Evidencia'} /><span>{item.nombre_archivo || 'Ver imagen'}</span></a> : <a className="evidenceLink" href={item.url} target="_blank" rel="noreferrer" key={item.id}>Abrir evidencia ↗</a>)}</div></div>;
+}
+
 function ComplaintList({ items, loading }: { items:any[]; loading:boolean }) { return <div className="panel"><div className="eyebrow">HISTORIAL PERSONAL</div><h2>Mis quejas</h2>{loading?<p>Cargando…</p>:items.length===0?<p>No tienes quejas presentadas.</p>:<div className="recordList">{items.map(x=><div className="record" key={x.id}><div><b>{x.motivo}</b><span>{x.persona_denunciada} · {x.fecha_hecho||'Fecha no indicada'}</span></div><strong>{x.estado.replace('_',' ')}</strong><p>{x.descripcion}</p><EvidenceBlock complaintId={x.id}/>{x.respuesta_psd&&<div className="response"><b>Respuesta PSD</b><p>{x.respuesta_psd}</p></div>}</div>)}</div>}</div>; }
 
 function RequestList({ items, loading, refresh }: { items:any[]; loading:boolean; refresh:()=>void }) {
