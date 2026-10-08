@@ -1,4 +1,5 @@
 import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL, authEmail, requireSupabaseConfig } from './supabase-config';
+import { LSFD_RANKS } from './ranks';
 
 const SESSION_KEY = 'lsfd-auth-session';
 
@@ -10,23 +11,6 @@ export type LsfdProfile = {
   rol: 'miembro' | 'psd' | 'admin';
   created_at: string;
 };
-
-export const LSFD_RANKS = [
-  'Probationary Firefighter',
-  'Firefighter I',
-  'Firefighter II',
-  'Firefighter III',
-  'Paramedic In Charge',
-  'Fire Engineer',
-  'Apparatus Operator',
-  'Fire Captain I',
-  'Fire Captain II',
-  'Batallion Chief',
-  'Assistant Chief',
-  'Deputy Chief',
-  'Chief Deputy',
-  'Fire Chief',
-] as const;
 
 export type LsfdSession = {
   access_token: string;

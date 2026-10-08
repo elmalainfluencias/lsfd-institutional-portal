@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { requireRole, serviceHeaders } from '../../../../lib/supabase-server';
 import { SUPABASE_URL } from '../../../../lib/supabase-config';
+import { isLsfdRank } from '../../../../lib/ranks';
 
 async function change(request: Request, estado: 'aprobado' | 'rechazado') {
   const token = request.headers.get('authorization')?.replace(/^Bearer\s+/i, '');
@@ -10,8 +11,7 @@ async function change(request: Request, estado: 'aprobado' | 'rechazado') {
   const { id, rango } = await request.json();
   if (!id) return NextResponse.json({ error: 'Falta el usuario.' }, { status: 400 });
   if (!rango) return NextResponse.json({ error: 'Falta el rango.' }, { status: 400 });
-  const allowed = ['Probationary Firefighter','Firefighter I','Firefighter II','Firefighter III','Paramedic In Charge','Fire Engineer','Apparatus Operator','Fire Captain I','Fire Captain II','Batallion Chief','Assistant Chief','Deputy Chief','Chief Deputy','Fire Chief'];
-  if (!allowed.includes(rango)) return NextResponse.json({ error: 'Rango no válido.' }, { status: 400 });
+  if (!isLsfdRank(rango)) return NextResponse.json({ error: 'Rango no válido.' }, { status: 400 });
   const response = await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${encodeURIComponent(id)}`, {
     method: 'PATCH', headers: { ...serviceHeaders(), Prefer: 'return=minimal' }, body: JSON.stringify({ estado, rango }),
   });
