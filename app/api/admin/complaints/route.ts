@@ -22,6 +22,7 @@ export async function POST(request: Request) {
     if (!auth) return NextResponse.json({ error: 'No autorizado.' }, { status: 403 });
     const { id, estado, respuesta_psd } = await request.json();
     if (!id) return NextResponse.json({ error: 'Falta la queja.' }, { status: 400 });
+    if (!['pendiente','en_revision','resuelta','rechazada'].includes(estado)) return NextResponse.json({ error: 'Estado de queja no válido.' }, { status: 400 });
     const response = await fetch(`${SUPABASE_URL}/rest/v1/quejas?id=eq.${encodeURIComponent(id)}`, { method: 'PATCH', headers: { ...serviceHeaders(), Prefer: 'return=minimal' }, body: JSON.stringify({ estado, respuesta_psd: respuesta_psd ?? null, updated_at: new Date().toISOString() }) });
     if (!response.ok) return NextResponse.json({ error: 'No se pudo actualizar la queja.' }, { status: 500 });
     return NextResponse.json({ ok: true });

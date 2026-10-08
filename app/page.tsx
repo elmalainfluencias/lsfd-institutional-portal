@@ -163,37 +163,50 @@ function ComplaintForm({ onDone }: { onDone: (msg:string)=>void }) { const [form
 
 function EvidenceBlock({ complaintId }: { complaintId: string }) {
   const [items, setItems] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState('');
-  useEffect(() => {
-    let active = true;
-    const load = async () => {
-      try {
-        const session = getSession();
-        if (!session) return;
-        const response = await fetch(`/api/complaints/evidence?complaintId=${encodeURIComponent(complaintId)}`, {
-          headers: { Authorization: `Bearer ${session.access_token}` },
-          cache: 'no-store',
-        });
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.error || 'No se pudo cargar la evidencia.');
-        if (active) setItems(data.items || []);
-      } catch (e) {
-        if (active) setError(e instanceof Error ? e.message : 'No se pudo cargar la evidencia.');
-      } finally {
-        if (active) setLoading(false);
-      }
-    };
-    load();
-    return () => { active = false; };
-  }, [complaintId]);
-  if (loading) return <div className="evidenceView"><b>Evidencia</b><span>Cargando…</span></div>;
-  if (error) return <div className="evidenceView"><b>Evidencia</b><span>{error}</span></div>;
-  if (!items.length) return null;
-  return <div className="evidenceView"><b>Evidencia</b><div className="evidenceItems">{items.map((item:any) => item.tipo === 'imagen' ? <a className="evidenceImage" href={item.url} target="_blank" rel="noreferrer" key={item.id}><img src={item.url} alt={item.nombre_archivo || 'Evidencia'} /><span>{item.nombre_archivo || 'Ver imagen'}</span></a> : <a className="evidenceLink" href={item.url} target="_blank" rel="noreferrer" key={item.id}>Abrir evidencia ↗</a>)}</div></div>;
+
+  const load = async () => {
+    if (loaded) { setOpen(v => !v); return; }
+    setOpen(true);
+    setLoading(true);
+    setError('');
+    try {
+      const session = getSession();
+      if (!session) throw new Error('Tu sesión expiró. Vuelve a iniciar sesión.');
+      const response = await fetch(`/api/complaints/evidence?complaintId=${encodeURIComponent(complaintId)}`, {
+        headers: { Authorization: `Bearer ${session.access_token}` }, cache: 'no-store'
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'No se pudo cargar la evidencia.');
+      setItems(data.items || []);
+      setLoaded(true);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'No se pudo cargar la evidencia.');
+    } finally { setLoading(false); }
+  };
+
+  return <div className="evidenceView">
+    <button type="button" className="evidenceToggle" onClick={load} aria-expanded={open}>
+      <span><b>Evidence</b>{loaded && items.length > 0 && <small>{items.length} elemento(s)</small>}</span>
+      <strong>{open ? 'Ocultar ↑' : 'Ver evidencia →'}</strong>
+    </button>
+    {open && <div className="evidenceContent">
+      {loading && <span className="evidenceMessage">Cargando evidencia…</span>}
+      {error && <span className="evidenceMessage evidenceError">{error}</span>}
+      {!loading && !error && loaded && !items.length && <span className="evidenceMessage">Esta queja no tiene evidencia adjunta.</span>}
+      {!loading && !error && items.length > 0 && <div className="evidenceItems">{items.map((item:any) =>
+        item.tipo === 'imagen'
+          ? <a className="evidenceImage" href={item.url} target="_blank" rel="noreferrer" key={item.id}><img src={item.url} alt={item.nombre_archivo || 'Evidencia'} /><span>{item.nombre_archivo || 'Ver imagen'}</span></a>
+          : <a className="evidenceLink" href={item.url} target="_blank" rel="noreferrer" key={item.id}>Abrir enlace de evidencia ↗</a>
+      )}</div>}
+    </div>}
+  </div>;
 }
 
-function ComplaintList({ items, loading }: { items:any[]; loading:boolean }) { return <div className="panel"><div className="eyebrow">HISTORIAL PERSONAL</div><h2>Mis quejas</h2>{loading?<p>Cargando…</p>:items.length===0?<p>No tienes quejas presentadas.</p>:<div className="recordList">{items.map(x=><div className="record" key={x.id}><div><b>{x.motivo}</b><span>{x.persona_denunciada} · {x.fecha_hecho||'Fecha no indicada'}</span></div><strong>{x.estado.replace('_',' ')}</strong><p>{x.descripcion}</p><EvidenceBlock complaintId={x.id}/>{x.respuesta_psd&&<div className="response"><b>Respuesta PSD</b><p>{x.respuesta_psd}</p></div>}</div>)}</div>}</div>; }
+function ComplaintList({ items, loading }: { items:any[]; loading:boolean }) { return <div className="panel"><div className="eyebrow">HISTORIAL PERSONAL</div><h2>Mis quejas</h2>{loading?<p>Cargando…</p>:items.length===0?<p>No tienes quejas presentadas.</p>:<div className="recordList">{items.map(x=><div className="record" key={x.id}><div><b>{x.motivo}</b><span>{x.persona_denunciada} · {x.fecha_hecho||'Fecha no indicada'}</span></div><strong className={`status status-${x.estado}`}>{x.estado.replace('_',' ')}</strong><p>{x.descripcion}</p><EvidenceBlock complaintId={x.id}/>{x.respuesta_psd&&<div className="response"><b>Respuesta PSD</b><p>{x.respuesta_psd}</p></div>}</div>)}</div>}</div>; }
 
 function RequestList({ items, loading, refresh }: { items:any[]; loading:boolean; refresh:()=>void }) {
   const [selected,setSelected]=useState<any>(null);
@@ -208,7 +221,77 @@ function MemberList({ items, loading, refresh }: { items:any[]; loading:boolean;
   return <div className="panel"><div className="eyebrow">ADMINISTRACIÓN</div><h2>Personal</h2><p>Administra el rango asignado a cada miembro y consulta el estado de sus cuentas.</p>{loading?<p>Cargando…</p>:items.length===0?<p>No hay miembros registrados.</p>:<div className="recordList">{items.map(x=><div className="record" key={x.id}><div><b>{x.nombre_ic}</b><span>{x.rango} · {x.estado === 'aprobado' ? 'Cuenta aprobada' : x.estado === 'pendiente' ? 'Pendiente' : 'Rechazada'}</span></div><div className="recordActions"><button className="primary smallButton" onClick={()=>{setSelected(x);setRank((LSFD_RANKS as readonly string[]).includes(x.rango) ? x.rango : LSFD_RANKS[0]);}}>Cambiar rango</button></div></div>)}</div>}{selected&&<div className="modalBackdrop"><div className="modalCard"><div className="eyebrow">GESTIÓN DE PERSONAL</div><h2>{selected.nombre_ic}</h2><p>Rango registrado: <b>{selected.rango}</b></p><label>Nuevo rango<select value={rank} onChange={e=>setRank(e.target.value)}>{LSFD_RANKS.map(r=><option key={r}>{r}</option>)}</select></label><div className="modalActions"><button className="ghost" onClick={()=>setSelected(null)}>Cancelar</button><button className="primary" onClick={edit}>Guardar cambios</button></div></div></div>}</div>;
 }
 
-function AdminComplaintList({ items, loading, refresh }: { items:any[]; loading:boolean; refresh:()=>void }) { const [selected,setSelected]=useState<any>(null); const [response,setResponse]=useState(''); const update=async(estado:string)=>{try{await adminRequest('/api/admin/complaints','POST',{id:selected.id,estado,respuesta_psd:response});setSelected(null);setResponse('');refresh();}catch(e){alert(e instanceof Error?e.message:'No se pudo actualizar.');}}; return <div className="panel"><div className="eyebrow">PROFESSIONAL STANDARDS DIVISION</div><h2>Quejas recibidas</h2>{loading?<p>Cargando…</p>:items.length===0?<p>No hay quejas registradas.</p>:<div className="recordList">{items.map(x=><div className="record" key={x.id}><div><b>{x.motivo}</b><span>Presentada por {x.profiles?.nombre_ic||'—'} · Contra {x.persona_denunciada}</span></div><strong>{x.estado.replace('_',' ')}</strong><p>{x.descripcion}</p><EvidenceBlock complaintId={x.id}/><button className="textBtn" onClick={()=>{setSelected(x);setResponse(x.respuesta_psd||'')}}>Gestionar →</button></div>)}</div>}{selected&&<div className="modalBackdrop"><div className="modalCard"><div className="eyebrow">GESTIONAR QUEJA</div><h2>{selected.motivo}</h2><p>{selected.descripcion}</p><label>Respuesta PSD<textarea rows={5} value={response} onChange={e=>setResponse(e.target.value)} /></label><div className="modalActions"><button className="ghost" onClick={()=>setSelected(null)}>Cancelar</button><button className="primary" onClick={()=>update('en_revision')}>Tomar en revisión</button><button className="primary" onClick={()=>update('resuelta')}>Resolver</button><button className="dangerButton" onClick={()=>update('rechazada')}>Rechazar</button></div></div></div>}</div>; }
+const COMPLAINT_STATUSES = [
+  ['pendiente','Pendientes'],
+  ['en_revision','En revisión'],
+  ['resuelta','Gestionadas'],
+  ['rechazada','Rechazadas'],
+] as const;
+
+function AdminComplaintList({ items, loading, refresh }: { items:any[]; loading:boolean; refresh:()=>void }) {
+  const [selected,setSelected]=useState<any>(null);
+  const [response,setResponse]=useState('');
+  const [filter,setFilter]=useState<'pendiente'|'en_revision'|'resuelta'|'rechazada'>('pendiente');
+  const [updating,setUpdating]=useState(false);
+
+  const filtered = items.filter(x => x.estado === filter);
+
+  const update=async(estado:'en_revision'|'resuelta'|'rechazada')=>{
+    if (!selected || updating) return;
+    setUpdating(true);
+    try {
+      await adminRequest('/api/admin/complaints','POST',{id:selected.id,estado,respuesta_psd:response.trim() || null});
+      const changed = { ...selected, estado, respuesta_psd: response.trim() || null, updated_at: new Date().toISOString() };
+      setSelected(null);
+      setResponse('');
+      setFilter(estado);
+      // Actualización inmediata para que una queja no siga apareciendo en la sección anterior.
+      refresh();
+      void changed;
+    } catch(e) {
+      alert(e instanceof Error?e.message:'No se pudo actualizar la queja.');
+    } finally { setUpdating(false); }
+  };
+
+  const filterLabels = COMPLAINT_STATUSES;
+  const selectedIsFinal = selected && (selected.estado === 'resuelta' || selected.estado === 'rechazada');
+
+  return <div className="panel">
+    <div className="eyebrow">PROFESSIONAL STANDARDS DIVISION</div>
+    <h2>Quejas recibidas</h2>
+    <p className="panelIntro">Consulta y gestiona las presentaciones según su estado. Cada sección contiene únicamente las quejas correspondientes a ese estado.</p>
+    <div className="complaintFilters" role="tablist" aria-label="Estado de las quejas">
+      {filterLabels.map(([value,label]) => {
+        const count = items.filter(x => x.estado === value).length;
+        return <button key={value} type="button" role="tab" aria-selected={filter===value} className={filter===value?'selected':''} onClick={()=>setFilter(value)}>
+          {label}<span>{count}</span>
+        </button>;
+      })}
+    </div>
+    {loading?<p>Cargando…</p>:filtered.length===0?<div className="emptyState"><b>No hay quejas en este apartado.</b><span>Las que cambien de estado aparecerán automáticamente en su sección correspondiente.</span></div>:<div className="recordList">{filtered.map(x=><div className="record complaintRecord" key={x.id}>
+      <div><b>{x.motivo}</b><span>Presentada por {x.profiles?.nombre_ic||'—'} · Contra {x.persona_denunciada}</span></div>
+      <strong className={`status status-${x.estado}`}>{x.estado==='pendiente'?'Pendiente':x.estado==='en_revision'?'En revisión':x.estado==='resuelta'?'Gestionada':'Rechazada'}</strong>
+      <p>{x.descripcion}</p>
+      <EvidenceBlock complaintId={x.id}/>
+      {x.respuesta_psd && <div className="response"><b>Respuesta PSD</b><p>{x.respuesta_psd}</p></div>}
+      <button className="textBtn" onClick={()=>{setSelected(x);setResponse(x.respuesta_psd||'')}}>{x.estado==='pendiente'?'Gestionar →': x.estado==='en_revision'?'Continuar gestión →':'Ver gestión →'}</button>
+    </div>)}</div>}
+    {selected&&<div className="modalBackdrop"><div className="modalCard">
+      <div className="eyebrow">GESTIÓN DE QUEJA</div>
+      <h2>{selected.motivo}</h2>
+      <div className="managementMeta"><span>Presentada por <b>{selected.profiles?.nombre_ic||'—'}</b></span><span>Contra <b>{selected.persona_denunciada}</b></span><span>Estado <b>{selected.estado==='pendiente'?'Pendiente':selected.estado==='en_revision'?'En revisión':selected.estado==='resuelta'?'Gestionada':'Rechazada'}</b></span></div>
+      <div className="managementDescription"><b>Descripción</b><p>{selected.descripcion}</p></div>
+      <EvidenceBlock complaintId={selected.id}/>
+      <label>Respuesta PSD<textarea rows={5} value={response} onChange={e=>setResponse(e.target.value)} disabled={selectedIsFinal || updating} placeholder="Deja constancia de la gestión realizada." /></label>
+      <div className="modalActions">
+        <button className="ghost" onClick={()=>setSelected(null)} disabled={updating}>Cerrar</button>
+        {!selectedIsFinal && selected.estado==='pendiente' && <button className="primary" onClick={()=>update('en_revision')} disabled={updating}>{updating?'Guardando…':'Tomar en revisión'}</button>}
+        {!selectedIsFinal && selected.estado==='en_revision' && <button className="primary" onClick={()=>update('resuelta')} disabled={updating}>{updating?'Guardando…':'Marcar como gestionada'}</button>}
+        {!selectedIsFinal && <button className="dangerButton" onClick={()=>update('rechazada')} disabled={updating}>{updating?'Guardando…':'Rechazar'}</button>}
+      </div>
+    </div></div>}
+  </div>;
+}
 
 function DisciplineView({ nav }: { nav: (v: any) => void }) {
   return <section className="content page">
