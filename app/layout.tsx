@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'LSFD | Portal Institucional',
-  description: 'Portal normativo y disciplinario del Los Santos Fire Department.',
+  description: 'Portal normativo y disciplinario de Los Santos Fire Department.',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

@@ -1,26 +1,21 @@
-# LSFD — Portal Institucional
+# LSFD Institutional Portal
 
-Portal web institucional para Los Santos Fire Department.
+Portal normativo institucional de Los Santos Fire Department.
 
-## Incluye
-- Código Disciplinario completo según el texto proporcionado.
-- Buscador de artículos y filtros por título.
-- Vista individual de cada artículo.
-- Régimen de faltas y sanciones.
-- Procedimiento disciplinario.
-- Sección de neutralidad institucional con propuesta normativa.
-- Diseño responsive y preparado para Vercel.
-
-## Ejecutar localmente
-
-```bash
-npm install
-npm run dev
-```
-
-Abrir http://localhost:3000
+## Contenido
+- Código Disciplinario completo.
+- Numeración independiente por Título.
+- Lectura continua del Código, con separación visual por Título.
+- Buscador de artículos y contenido.
+- Régimen disciplinario y procedimiento.
+- Sección de Neutralidad Institucional.
+- Identidad visual LSFD y Professional Standards Division (PSD).
 
 ## Deploy en Vercel
-Subir este proyecto a GitHub y crear un nuevo proyecto en Vercel apuntando al repositorio. No requiere variables de entorno.
+1. Subir el contenido de esta carpeta a GitHub.
+2. Importar el repositorio en Vercel.
+3. Framework: Next.js.
+4. No requiere variables de entorno.
 
-Nota: el texto fuente proporcionado salta del Art. 34º al Art. 36º. El portal conserva ese salto y no inventa el Art. 35º.
+## Nota de numeración
+El documento original contiene 160 numeraciones globales y un salto del Art. 34º al 36º dentro del Título II. Para la versión web, cada Título reinicia su numeración en el Art. 1º. Por eso el Título II contiene 39 artículos y el Código queda compuesto por 159 artículos en total.
