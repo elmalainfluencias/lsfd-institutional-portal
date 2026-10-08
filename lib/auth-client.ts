@@ -11,6 +11,23 @@ export type LsfdProfile = {
   created_at: string;
 };
 
+export const LSFD_RANKS = [
+  'Probationary Firefighter',
+  'Firefighter I',
+  'Firefighter II',
+  'Firefighter III',
+  'Paramedic In Charge',
+  'Fire Engineer',
+  'Apparatus Operator',
+  'Fire Captain I',
+  'Fire Captain II',
+  'Batallion Chief',
+  'Assistant Chief',
+  'Deputy Chief',
+  'Chief Deputy',
+  'Fire Chief',
+] as const;
+
 export type LsfdSession = {
   access_token: string;
   refresh_token?: string;
@@ -101,16 +118,17 @@ export async function createComplaint(payload: {
   motivo: string;
   descripcion: string;
   fecha_hecho?: string;
+  links?: string[];
 }) {
   const session = getSession();
-  if (!session) throw new Error('Tu sesión expiró. Volvé a iniciar sesión.');
-  const response = await fetch(`${SUPABASE_URL}/rest/v1/quejas`, {
+  if (!session) throw new Error('Tu sesión expiró. Vuelve a iniciar sesión.');
+  const response = await fetch('/api/complaints', {
     method: 'POST',
-    headers: { ...headers(session.access_token), Prefer: 'return=representation' },
-    body: JSON.stringify({ ...payload, usuario_id: session.profile.id }),
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+    body: JSON.stringify(payload),
   });
   const data = await response.json();
-  if (!response.ok) throw new Error(data.message || data.hint || 'No se pudo presentar la queja.');
+  if (!response.ok) throw new Error(data.error || 'No se pudo presentar la queja.');
   return data;
 }
 
