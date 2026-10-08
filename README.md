@@ -18,4 +18,4 @@ Portal normativo institucional de Los Santos Fire Department.
 4. No requiere variables de entorno.
 
 ## Nota de numeración
-El documento original contiene 160 numeraciones globales y un salto del Art. 34º al 36º dentro del Título II. Para la versión web, cada Título reinicia su numeración en el Art. 1º. Por eso el Título II contiene 39 artículos y el Código queda compuesto por 159 artículos en total.
+El documento original contiene 160 numeraciones globales y un salto del Art. 34º al 36º dentro del Título II. Para la versión web, cada Título reinicia su numeración en el Art. 1º. Por eso el Título II contiene 39 artículos y el Código queda compuesto por 161 artículos en total.

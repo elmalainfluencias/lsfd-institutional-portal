@@ -67,7 +67,7 @@ export default function Home() {
     <footer>
       <div className="footerBrand"><img src="/lsfd-logo.png" alt="LSFD" /><div><b>LOS SANTOS FIRE DEPARTMENT</b><span>Portal Normativo Institucional</span></div></div>
       <div className="footerDivision"><img src="/psd-logo.png" alt="PSD" /><span>Professional Standards Division</span></div>
-      <div>Versión 1.0 · Revisado en Abril 2026</div>
+      <div>Versión 1.1 · Revisado y actualizado en Octubre 2026</div>
     </footer>
   </main>;
 }
@@ -80,7 +80,7 @@ function HomeView({ openCode, nav }: { openCode: (id?: string) => void; nav: (v:
       <h1>Normativa, disciplina<br /><em>y profesionalismo.</em></h1>
       <p>Centro de consulta del marco disciplinario, operativo y administrativo de Los Santos Fire Department.</p>
       <div className="heroActions"><button className="primary" onClick={() => openCode()}>Consultar Código <span>→</span></button><button className="ghost" onClick={() => nav('discipline')}>Régimen disciplinario</button></div>
-      <div className="heroMeta"><span><b>1.0</b> Versión vigente</span><span><b>159</b> artículos</span><span><b>VII</b> títulos</span></div>
+      <div className="heroMeta"><span><b>1.1</b> Versión vigente</span><span><b>161</b> artículos</span><span><b>VII</b> títulos</span></div>
     </section>
 
     <section className="content">
@@ -90,7 +90,7 @@ function HomeView({ openCode, nav }: { openCode: (id?: string) => void; nav: (v:
         <div><div className="eyebrow">PRINCIPIO INSTITUCIONAL</div><h2>La disciplina protege<br />la operación.</h2><p>Las normas no solo establecen sanciones. Definen responsabilidades, protegen la cadena de mando y establecen criterios para actuar con seguridad y profesionalismo.</p></div>
         <div className="featureStats"><div><b>3</b><span>niveles de falta</span></div><div><b>5</b><span>sanciones principales</span></div><div><b>20</b><span>artículos de procedimiento</span></div></div>
       </div>
-      <div className="notice"><div className="noticeIcon">✓</div><div><b>Numeración independiente por título</b><p>Cada título reinicia su numeración desde el Art. 1º. El Título II contiene 39 artículos debido al salto existente en el documento original entre sus artículos 34º y 36º.</p></div></div>
+      <div className="notice"><div className="noticeIcon">✓</div><div><b>Numeración independiente por título</b><p>Cada título reinicia su numeración desde el Art. 1º. El Título II contiene 41 artículos tras la incorporación de las normas de neutralidad institucional y participación política.</p></div></div>
     </section>
   </>;
 }
@@ -101,7 +101,7 @@ function CodeView({ query, setQuery, section, setSection }: { query: string; set
   const resultCount = visibleSections.reduce((n, s) => n + s.articles.length, 0);
 
   return <section className="content page">
-    <div className="pageTitle"><div><div className="eyebrow">DOCUMENTO NORMATIVO</div><h1>Código Disciplinario</h1><p>Versión 1.0 · Revisado en Abril 2026 · Los Santos Fire Department</p></div><div className="docMarks"><img src="/lsfd-logo.png" alt="LSFD" /><span>LSFD / CD-01</span></div></div>
+    <div className="pageTitle"><div><div className="eyebrow">DOCUMENTO NORMATIVO</div><h1>Código Disciplinario</h1><p>Versión 1.1 · Revisado y actualizado en Octubre 2026 · Los Santos Fire Department</p></div><div className="docMarks"><img src="/lsfd-logo.png" alt="LSFD" /><span>LSFD / CD-01</span></div></div>
     <div className="search"><span>⌕</span><input value={query} onChange={e => setQuery(e.target.value)} placeholder="Buscar artículo, término o contenido…" />{query && <button className="clearSearch" onClick={() => setQuery('')}>×</button>}</div>
     <div className="filters"><button className={section === 'all' ? 'selected' : ''} onClick={() => setSection('all')}>Todos</button>{sections.map(s => <button key={s.id} className={section === s.id ? 'selected' : ''} onClick={() => setSection(s.id)}>{s.title.replace('Título ', 'T. ')}</button>)}</div>
 
@@ -146,6 +146,6 @@ function NeutralityView() {
   return <section className="content page">
     <div className="neutralHero"><div className="neutralLogos"><img src="/lsfd-logo.png" alt="LSFD" /><span>+</span><img src="/psd-logo.png" alt="PSD" /></div><div className="eyebrow">NORMATIVA COMPLEMENTARIA · PROPUESTA</div><h1>Neutralidad institucional</h1><p>Un marco específico para proteger la independencia, imagen y representación de LSFD frente a actividades partidarias.</p></div>
     <div className="warning"><b>Situación actual</b><p>El Código vigente contiene disposiciones relacionadas con imagen, comunicaciones, instalaciones y prestigio institucional, pero no establece una prohibición expresa y autónoma sobre la utilización partidaria de LSFD.</p></div>
-    <div className="twoCol"><div className="panel"><div className="eyebrow">ARTÍCULOS RELACIONADOS</div><h2>Marco vigente</h2>{related.map(([id, n]) => { const s = sections.find(x => x.id === id)!; const a = s.articles.find(x => x.n === n)!; return <div className="related" key={`${id}-${n}`}><b>{s.title} · Art. {n}º</b><p>{a.text}</p></div>; })}</div><div className="panel proposal"><div className="eyebrow">PROPUESTA</div><h2>Artículo de neutralidad</h2><p><b>Neutralidad institucional.</b> LSFD mantendrá estricta neutralidad respecto de partidos políticos, organizaciones partidarias, candidaturas y actividades de carácter electoral o proselitista.</p><p>Queda prohibido utilizar el nombre, imagen, instalaciones, vehículos, uniformes, recursos, personal o representación institucional de LSFD para promover, respaldar, favorecer o asociar al Departamento con cualquier partido político, candidato u organización partidaria, salvo actividades oficiales de carácter institucional que cuenten con autorización expresa de la autoridad competente.</p><p>Ningún miembro podrá utilizar su rango, cargo, uniforme o condición de funcionario para expresar apoyo institucional a partidos políticos, candidatos u organizaciones partidarias.</p></div></div>
+    <div className="twoCol"><div className="panel"><div className="eyebrow">ARTÍCULOS RELACIONADOS</div><h2>Marco vigente</h2>{related.map(([id, n]) => { const s = sections.find(x => x.id === id)!; const a = s.articles.find(x => x.n === n)!; return <div className="related" key={`${id}-${n}`}><b>{s.title} · Art. {n}º</b><p>{a.text}</p></div>; })}</div><div className="panel proposal"><div className="eyebrow">NORMATIVA VIGENTE · TÍTULO II</div><h2>Neutralidad institucional</h2><p><b>Art. 30º — Neutralidad institucional.</b> LSFD mantendrá estricta neutralidad respecto de partidos políticos, organizaciones partidarias, candidaturas y actividades de carácter electoral o proselitista.</p><p>Queda prohibido utilizar el nombre, imagen, instalaciones, vehículos, uniformes, recursos, personal o representación institucional de LSFD para promover, respaldar, favorecer o asociar al Departamento con cualquier partido político, candidato u organización partidaria, salvo actividades oficiales de carácter institucional que cuenten con autorización expresa de la autoridad competente.</p><p><b>Art. 31º — Participación política y representación institucional.</b> Ningún miembro podrá utilizar su rango, cargo, uniforme o condición de funcionario para expresar apoyo institucional a partidos políticos, candidatos u organizaciones partidarias.</p></div></div>
   </section>;
 }
