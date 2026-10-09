@@ -161,3 +161,18 @@ footer b { color:var(--theme-text); }
 .modalClose:hover{border-color:var(--lsfd-red);color:var(--lsfd-red)}
 .modalClose:disabled{opacity:.45;cursor:not-allowed}
 .memberModalNotice{margin-top:16px;margin-bottom:0}
+
+/* Identidad institucional y misión LSFD */
+.identitySection{width:min(1180px,86vw);margin:0 auto;padding:88px 0 80px;display:grid;grid-template-columns:.82fr 1.18fr;gap:clamp(35px,7vw,100px);border-bottom:1px solid var(--theme-border)}
+.identityIntro{align-self:start;position:sticky;top:115px}
+.identityIntro h2{font:600 clamp(38px,4vw,57px)/1.04 Georgia,serif;letter-spacing:-1px;text-transform:uppercase;margin:16px 0 22px;color:var(--theme-text)}
+.identityIntro h2 em{font-style:normal;color:var(--lsfd-red)}
+.identityIntro>p{max-width:440px;color:var(--theme-muted);font-size:15px;line-height:1.85;margin:0}
+.identityMission{display:grid;gap:0}
+.identityBlock{padding:27px 0 30px;border-top:1px solid var(--theme-border)}
+.identityIndex{font-size:9px;letter-spacing:2px;font-weight:800;color:var(--lsfd-red)}
+.identityBlock h3{font:600 clamp(22px,2.4vw,30px) Georgia,serif;text-transform:uppercase;color:var(--theme-text);margin:12px 0}
+.identityBlock p{font-size:13px;line-height:1.85;color:var(--theme-muted);max-width:690px;margin:0}
+.identityValues{display:flex;flex-wrap:wrap;gap:8px;margin-top:17px}
+.identityValues span{border:1px solid var(--theme-border);padding:9px 12px;color:var(--theme-text);font-size:10px;letter-spacing:.5px;background:var(--theme-surface)}
+@media(max-width:760px){.identitySection{width:88vw;padding:58px 0;grid-template-columns:1fr;gap:25px}.identityIntro{position:static}.identityIntro h2{font-size:42px}.identityBlock{padding:22px 0}}

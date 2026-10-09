@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { allArticles, sections } from '../lib/code';
 import { LSFD_RANKS } from '../lib/ranks';
 import { adminRequest, clearSession, createComplaint, getMyComplaints, getSession, login, requestAccount, type LsfdProfile } from '../lib/auth-client';
+import HeroSlideshow from '../components/HeroSlideshow';
 
 const discipline = [
   { type: 'Leve', color: 'slate', desc: 'Conductas que alteren el orden, la disciplina o el funcionamiento sin comprometer gravemente la seguridad o el servicio.', arts: '3' },
@@ -83,13 +84,19 @@ export default function Home() {
 
 function HomeView({ openCode, nav }: { openCode: (id?: string) => void; nav: (v: any) => void }) {
   return <>
-    <section className="hero">
-      <div className="heroBrand"><img src="/lsfd-logo.png" alt="LSFD" /><div><span>LOS SANTOS FIRE DEPARTMENT</span><b>PORTAL NORMATIVO</b></div></div>
-      <div className="eyebrow">PORTAL INSTITUCIONAL · LSFD</div>
-      <h1>Normativa, disciplina<br /><em>y profesionalismo.</em></h1>
-      <p>Centro de consulta del marco disciplinario, operativo y administrativo de Los Santos Fire Department.</p>
-      <div className="heroActions"><button className="primary" onClick={() => openCode()}>Consultar Código <span>→</span></button><button className="ghost" onClick={() => nav('discipline')}>Régimen disciplinario</button></div>
-      <div className="heroMeta"><span><b>1.1</b> Versión vigente</span><span><b>161</b> artículos</span><span><b>VII</b> títulos</span></div>
+    <HeroSlideshow />
+
+    <section className="identitySection" id="identidad">
+      <div className="identityIntro">
+        <div className="eyebrow">QUIÉNES SOMOS</div>
+        <h2>Una institución.<br /><em>Un compromiso.</em></h2>
+        <p>Los Santos Fire Department es una institución dedicada a la respuesta ante emergencias, la protección de la vida y el servicio responsable a la comunidad de Los Santos.</p>
+      </div>
+      <div className="identityMission">
+        <article className="identityBlock missionBlock"><span className="identityIndex">01 / MISIÓN</span><h3>Proteger y servir.</h3><p>Responder a emergencias con preparación, coordinación y profesionalismo; preservar la vida y los bienes, y actuar con responsabilidad, respeto y vocación de servicio.</p></article>
+        <article className="identityBlock visionBlock"><span className="identityIndex">02 / VISIÓN</span><h3>Confianza en cada respuesta.</h3><p>Consolidar un departamento confiable, preparado y cercano a la comunidad, con personal capacitado, criterios claros y una cultura de mejora continua.</p></article>
+        <article className="identityBlock valuesBlock"><span className="identityIndex">03 / VALORES</span><h3>La forma en que servimos.</h3><div className="identityValues"><span>Integridad</span><span>Disciplina</span><span>Trabajo en equipo</span><span>Preparación</span><span>Respeto</span><span>Compromiso</span></div></article>
+      </div>
     </section>
 
     <section className="content">

@@ -1,21 +1,28 @@
 # LSFD Institutional Portal
 
-Portal normativo institucional de Los Santos Fire Department.
+Portal institucional de Los Santos Fire Department construido con Next.js 15, React 19 y TypeScript. Incluye el portal normativo, acceso del personal, gestión administrativa, procedimientos y denuncias PSD.
 
-## Contenido
-- Código Disciplinario completo.
-- Numeración independiente por Título.
-- Lectura continua del Código, con separación visual por Título.
-- Buscador de artículos y contenido.
-- Régimen disciplinario y procedimiento.
-- Sección de Neutralidad Institucional.
-- Identidad visual LSFD y Professional Standards Division (PSD).
+## Novedades de esta versión
 
-## Deploy en Vercel
-1. Subir el contenido de esta carpeta a GitHub.
-2. Importar el repositorio en Vercel.
-3. Framework: Next.js.
-4. No requiere variables de entorno.
+- Portada fotográfica tipo slideshow con las tres escenas institucionales compartidas.
+- Rotación automática cada 6,5 segundos, controles manuales, indicadores y pausa al pasar el cursor o enfocar los controles.
+- Diseño adaptable a móvil y respeto por la preferencia de movimiento reducido del sistema.
+- Nueva sección de identidad institucional con presentación, misión, visión y valores.
+- Se conservan las vistas del código normativo, disciplina, procedimientos, neutralidad, autenticación y panel interno.
 
-## Nota de numeración
-El documento original contiene 160 numeraciones globales y un salto del Art. 34º al 36º dentro del Título II. Para la versión web, cada Título reinicia su numeración en el Art. 1º. Por eso el Título II contiene 39 artículos y el Código queda compuesto por 161 artículos en total.
+## Desarrollo local
+
+Requiere Node.js 24.x.
+
+1. Instalar dependencias: `npm install`
+2. Crear `.env.local` a partir de `.env.example` y completar las variables de entorno en privado.
+3. Iniciar: `npm run dev`
+4. Compilar: `npm run build`
+
+## Variables de entorno
+
+Configurar en Vercel y localmente las variables requeridas por la integración Supabase. No subir `.env.local`, claves secretas, tokens ni credenciales al repositorio.
+
+## Subir una versión completa desde GitHub web
+
+Descomprimir el ZIP y cargar el contenido de la carpeta `lsfd_owner_work` en la raíz del repositorio. Si GitHub pregunta por archivos existentes, confirmar la actualización de esos archivos y crear un único commit. No subir la carpeta externa como una carpeta anidada dentro del repositorio.
