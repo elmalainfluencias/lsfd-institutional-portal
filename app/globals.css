@@ -152,3 +152,12 @@ footer b { color:var(--theme-text); }
 .modalCard .evidenceContent{max-height:390px;overflow:auto}
 
 .dividerLine{height:1px;background:var(--line);margin:22px 0}
+
+/* Member management modal: explicit close control and independent action buttons. */
+.memberModal{position:relative}
+.memberModalHeader{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;padding-right:0}
+.memberModalHeader h2{margin:8px 0 12px}
+.modalClose{flex:0 0 auto;width:36px;height:36px;display:grid;place-items:center;border:1px solid var(--theme-border);border-radius:4px;background:var(--theme-bg);color:var(--theme-text);font-size:27px;line-height:1;cursor:pointer}
+.modalClose:hover{border-color:var(--lsfd-red);color:var(--lsfd-red)}
+.modalClose:disabled{opacity:.45;cursor:not-allowed}
+.memberModalNotice{margin-top:16px;margin-bottom:0}

@@ -219,10 +219,84 @@ function MemberList({ items, loading, refresh, canManageRoles }: { items:any[]; 
   const [selected,setSelected]=useState<any>(null);
   const [rank,setRank]=useState<string>(LSFD_RANKS[0]);
   const [role,setRole]=useState<'miembro'|'psd'|'admin'>('miembro');
-  const [saving,setSaving]=useState(false);
-  const edit=async()=>{setSaving(true);try{await adminRequest('/api/admin/members','PATCH',{id:selected.id,rango:rank});setSelected(null);refresh();}catch(e){alert(e instanceof Error?e.message:'No se pudo actualizar el rango.');}finally{setSaving(false);}};
-  const saveRole=async()=>{if(!selected)return;setSaving(true);try{await adminRequest('/api/admin/members','PATCH',{id:selected.id,rol:role});setSelected(null);refresh();alert('Permisos actualizados. El usuario debe actualizar el portal para ver los cambios.');}catch(e){alert(e instanceof Error?e.message:'No se pudieron actualizar los permisos.');}finally{setSaving(false);}};
-  return <div className="panel"><div className="eyebrow">ADMINISTRACIÓN</div><h2>Personal</h2><p>Administra los rangos asignados y consulta el estado de las cuentas.{canManageRoles?' Desde esta cuenta también puedes administrar los permisos del portal.':''}</p>{loading?<p>Cargando…</p>:items.length===0?<p>No hay miembros registrados.</p>:<div className="recordList">{items.map(x=><div className="record" key={x.id}><div><b>{x.nombre_ic}</b><span>{x.rango} · {x.estado === 'aprobado' ? 'Cuenta aprobada' : x.estado === 'pendiente' ? 'Pendiente' : 'Rechazada'} · {x.rol==='admin'?'Administrador':x.rol==='psd'?'PSD':'Miembro'}</span></div><div className="recordActions"><button className="primary smallButton" onClick={()=>{setSelected(x);setRank((LSFD_RANKS as readonly string[]).includes(x.rango) ? x.rango : LSFD_RANKS[0]);setRole(x.rol);}}>Gestionar</button></div></div>)}</div>}{selected&&<div className="modalBackdrop"><div className="modalCard"><div className="eyebrow">GESTIÓN DE PERSONAL</div><h2>{selected.nombre_ic}</h2><p>Rango registrado: <b>{selected.rango}</b></p><label>Nuevo rango<select value={rank} onChange={e=>setRank(e.target.value)}>{LSFD_RANKS.map(r=><option key={r}>{r}</option>)}</select></label><div className="modalActions"><button className="ghost" onClick={()=>setSelected(null)}>Cancelar</button><button className="primary" disabled={saving} onClick={edit}>{saving?'Guardando…':'Guardar rango'}</button></div>{canManageRoles&&<><div className="dividerLine"/><div className="eyebrow">PERMISOS DEL PORTAL · SOLO ADMINISTRADOR PRINCIPAL</div><label>Rol de acceso<select value={role} onChange={e=>setRole(e.target.value as 'miembro'|'psd'|'admin')}><option value="miembro">Miembro</option><option value="psd">PSD</option><option value="admin">Administrador</option></select></label><p className="muted">Cambiar el rol no modifica el rango IC. No puedes modificar los permisos de la cuenta propietaria.</p><div className="modalActions"><button className="primary" disabled={saving || role===selected.rol} onClick={saveRole}>{saving?'Guardando…':'Guardar permisos'}</button></div></>}</div></div>}</div>;
+  const [savingRank,setSavingRank]=useState(false);
+  const [savingRole,setSavingRole]=useState(false);
+  const [modalNotice,setModalNotice]=useState('');
+
+  const openMember=(member:any)=>{
+    setSelected(member);
+    setRank((LSFD_RANKS as readonly string[]).includes(member.rango) ? member.rango : LSFD_RANKS[0]);
+    setRole(member.rol);
+    setModalNotice('');
+  };
+
+  const edit=async()=>{
+    if(!selected || savingRank) return;
+    setSavingRank(true);
+    setModalNotice('');
+    try {
+      await adminRequest('/api/admin/members','PATCH',{id:selected.id,rango:rank});
+      setSelected((current:any)=>current ? {...current,rango:rank} : current);
+      await Promise.resolve(refresh());
+      setModalNotice('Rango actualizado correctamente.');
+    } catch(e) {
+      alert(e instanceof Error?e.message:'No se pudo actualizar el rango.');
+    } finally { setSavingRank(false); }
+  };
+
+  const saveRole=async()=>{
+    if(!selected || savingRole || role===selected.rol) return;
+    setSavingRole(true);
+    setModalNotice('');
+    try {
+      await adminRequest('/api/admin/members','PATCH',{id:selected.id,rol:role});
+      setSelected((current:any)=>current ? {...current,rol:role} : current);
+      await Promise.resolve(refresh());
+      setModalNotice('Permisos actualizados correctamente.');
+    } catch(e) {
+      alert(e instanceof Error?e.message:'No se pudieron actualizar los permisos.');
+    } finally { setSavingRole(false); }
+  };
+
+  const closeModal=()=>{
+    if(savingRank || savingRole) return;
+    setSelected(null);
+    setModalNotice('');
+  };
+
+  return <div className="panel">
+    <div className="eyebrow">ADMINISTRACIÓN</div>
+    <h2>Personal</h2>
+    <p>Administra los rangos asignados y consulta el estado de las cuentas.{canManageRoles?' Desde esta cuenta también puedes administrar los permisos del portal.':''}</p>
+    {loading?<p>Cargando…</p>:items.length===0?<p>No hay miembros registrados.</p>:<div className="recordList">{items.map(x=><div className="record" key={x.id}>
+      <div><b>{x.nombre_ic}</b><span>{x.rango} · {x.estado === 'aprobado' ? 'Cuenta aprobada' : x.estado === 'pendiente' ? 'Pendiente' : 'Rechazada'} · {x.rol==='admin'?'Administrador':x.rol==='psd'?'PSD':'Miembro'}</span></div>
+      <div className="recordActions"><button type="button" className="primary smallButton" onClick={()=>openMember(x)}>Gestionar</button></div>
+    </div>)}</div>}
+    {selected&&<div className="modalBackdrop" onMouseDown={(event)=>{if(event.target===event.currentTarget) closeModal();}}>
+      <div className="modalCard memberModal" role="dialog" aria-modal="true" aria-labelledby="member-modal-title">
+        <div className="memberModalHeader">
+          <div><div className="eyebrow">GESTIÓN DE PERSONAL</div><h2 id="member-modal-title">{selected.nombre_ic}</h2></div>
+          <button type="button" className="modalClose" aria-label="Cerrar ventana" title="Cerrar ventana" onClick={closeModal} disabled={savingRank||savingRole}>×</button>
+        </div>
+        <p>Rango registrado: <b>{selected.rango}</b></p>
+        <label>Nuevo rango<select value={rank} onChange={e=>setRank(e.target.value)}>{LSFD_RANKS.map(r=><option key={r} value={r}>{r}</option>)}</select></label>
+        <div className="modalActions">
+          <button type="button" className="ghost" onClick={closeModal} disabled={savingRank||savingRole}>Cerrar</button>
+          <button type="button" className="primary" disabled={savingRank || rank===selected.rango} onClick={edit}>{savingRank?'Guardando rango…':'Guardar rango'}</button>
+        </div>
+        {canManageRoles&&<>
+          <div className="dividerLine"/>
+          <div className="eyebrow">PERMISOS DEL PORTAL · SOLO ADMINISTRADOR PRINCIPAL</div>
+          <label>Rol de acceso<select value={role} onChange={e=>setRole(e.target.value as 'miembro'|'psd'|'admin')}><option value="miembro">Miembro</option><option value="psd">PSD</option><option value="admin">Administrador</option></select></label>
+          <p className="muted">Cambiar el rol no modifica el rango IC. No puedes modificar los permisos de la cuenta propietaria.</p>
+          <div className="modalActions">
+            <button type="button" className="primary" disabled={savingRole || role===selected.rol} onClick={saveRole}>{savingRole?'Guardando permisos…':'Guardar permisos'}</button>
+          </div>
+        </>}
+        {modalNotice&&<div className="formSuccess memberModalNotice" role="status">{modalNotice}</div>}
+      </div>
+    </div>}
+  </div>;
 }
 
 const COMPLAINT_STATUSES = [
