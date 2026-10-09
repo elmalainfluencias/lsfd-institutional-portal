@@ -150,3 +150,5 @@ footer b { color:var(--theme-text); }
 .complaintRecord .response{margin-top:12px}
 .modalCard .evidenceView{margin:14px 0}
 .modalCard .evidenceContent{max-height:390px;overflow:auto}
+
+.dividerLine{height:1px;background:var(--line);margin:22px 0}
