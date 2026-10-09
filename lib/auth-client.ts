@@ -46,6 +46,52 @@ export function clearSession() {
   window.localStorage.removeItem(SESSION_KEY);
 }
 
+/** Refreshes the current Supabase token when needed and reloads the live LSFD profile.
+ * This prevents stale browser-stored roles/status from blocking newly granted permissions. */
+export async function refreshSession(): Promise<LsfdSession | null> {
+  let session = getSession();
+  if (!session) return null;
+
+  const fetchProfile = async (accessToken: string) => fetch(
+    `${SUPABASE_URL}/rest/v1/profiles?select=id,nombre_ic,rango,estado,rol,created_at&id=eq.${encodeURIComponent(session!.user.id)}&limit=1`,
+    { headers: headers(accessToken), cache: 'no-store' }
+  );
+
+  let profileResponse = await fetchProfile(session.access_token);
+  if (profileResponse.status === 401 && session.refresh_token) {
+    const refreshResponse = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`, {
+      method: 'POST',
+      headers: headers(),
+      body: JSON.stringify({ refresh_token: session.refresh_token }),
+      cache: 'no-store',
+    });
+    const refreshed = await refreshResponse.json();
+    if (!refreshResponse.ok || !refreshed.access_token) {
+      clearSession();
+      return null;
+    }
+    session = {
+      ...session,
+      access_token: refreshed.access_token,
+      refresh_token: refreshed.refresh_token || session.refresh_token,
+      expires_at: refreshed.expires_at,
+      user: { id: refreshed.user?.id || session.user.id },
+    };
+    profileResponse = await fetchProfile(session.access_token);
+  }
+
+  if (!profileResponse.ok) return session;
+  const profiles = await profileResponse.json();
+  const profile = profiles[0] as LsfdProfile | undefined;
+  if (!profile || profile.estado !== 'aprobado') {
+    clearSession();
+    return null;
+  }
+  session = { ...session, profile };
+  saveSession(session);
+  return session;
+}
+
 export async function login(nombreIc: string, password: string) {
   requireSupabaseConfig();
   const response = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
@@ -127,13 +173,25 @@ export async function getMyComplaints() {
 }
 
 export async function adminRequest(path: string, method: 'GET' | 'POST' | 'PATCH', body?: unknown) {
-  const session = getSession();
+  // Reload the profile first so role/status changes made by an administrator take effect
+  // without requiring the user to sign out and back in.
+  let session = await refreshSession();
   if (!session || !['admin', 'psd'].includes(session.profile.rol)) throw new Error('No autorizado.');
-  const response = await fetch(path, {
+
+  const send = (current: LsfdSession) => fetch(path, {
     method,
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${current.access_token}` },
     body: body ? JSON.stringify(body) : undefined,
+    cache: 'no-store',
   });
+
+  let response = await send(session);
+  if (response.status === 401 || response.status === 403) {
+    // A stale/expired token or profile may have been stored in the browser. Refresh once,
+    // then retry; the server still performs its own role check on every request.
+    session = await refreshSession();
+    if (session && ['admin', 'psd'].includes(session.profile.rol)) response = await send(session);
+  }
   const data = await response.json();
   if (!response.ok) throw new Error(data.error || 'No se pudo completar la operación.');
   return data;
